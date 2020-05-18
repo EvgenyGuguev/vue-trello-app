@@ -1,16 +1,16 @@
 <template>
-  <div
-        class="column"
-        draggable="true"
-        @drop="moveTaskOrColumn($event, column.tasks, columnIndex)"
-        @dragover.prevent
-        @dragenter.prevent
-        @dragstart.self="pickupColumn($event, columnIndex)"
-      >
-        <div class="flex items-center mb-2 font-bold">
-          {{ column.name }}
-        </div>
-        <div class="list-reset">
+  <app-drop @drop="moveTaskOrColumn">
+    <app-drag
+      class="column"
+      :transfer-data="{
+        type: 'column',
+        fromColumnIndex: columnIndex,
+      }"
+    >
+      <div class="flex items-center mb-2 font-bold">
+        {{ column.name }}
+      </div>
+      <div class="list-reset">
           <column-task
             v-for="(task, $taskIndex) of column.tasks"
             :key="$taskIndex"
@@ -28,27 +28,23 @@
             @keyup.enter="createTask($event, column.tasks)"
           />
         </div>
-      </div>
+    </app-drag>
+  </app-drop>
 </template>
 
 <script>
 import ColumnTask from './ColumnTask'
+import AppDrag from './AppDrag'
+import AppDrop from './AppDrop'
 import movingTasksAndColumnsMixin from '../mixins/movingTasksAndColumnsMixin'
 
 export default {
   name: 'BoardColumn',
   components: {
-    ColumnTask
+    ColumnTask, AppDrag, AppDrop
   },
   mixins: [movingTasksAndColumnsMixin],
   methods: {
-    pickupColumn (e, fromColumnIndex) {
-      e.dataTransfer.effectAllowed = 'move'
-      e.dataTransfer.dropEffect = 'move'
-
-      e.dataTransfer.setData('from-column-index', fromColumnIndex)
-      e.dataTransfer.setData('type', 'column')
-    },
     createTask (e, tasks) {
       this.$store.commit('CREATE_TASK', { tasks, name: e.target.value })
       e.target.value = ''
